@@ -1,0 +1,17 @@
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    properties:
+      PROXY_URL:
+        type: string
+        description: "Optional HTTP proxy URL for Reddit requests (e.g. http://user:pass@proxy:8080)"
+    required: []
+  commandFunction: |-
+    (config) => ({
+      command: 'bun',
+      args: ['run', 'src/index.ts'],
+      env: {
+        ...(config.PROXY_URL ? { PROXY_URL: config.PROXY_URL } : {}),
+      },
+    })

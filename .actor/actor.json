@@ -1,0 +1,9 @@
+{
+  "actorSpecification": 1,
+  "name": "reddit-scraper",
+  "title": "Reddit Scraper",
+  "description": "Scrape Reddit posts, comments, subreddits, user profiles, and search results. No API key needed.",
+  "version": "1.0.0",
+  "input": "./input_schema.json",
+  "dockerfile": "./Dockerfile"
+}

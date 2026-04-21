@@ -1,0 +1,89 @@
+{
+  "title": "Reddit Scraper Input",
+  "description": "Configure what to scrape from Reddit",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "action": {
+      "title": "Action",
+      "type": "string",
+      "description": "What to scrape",
+      "enum": ["searchPosts", "getPost", "getSubreddit", "getSubredditPosts", "getUser", "getUserActivity", "getMultiFeed"],
+      "default": "searchPosts",
+      "editor": "select"
+    },
+    "query": {
+      "title": "Search Query",
+      "type": "string",
+      "description": "Search query (for searchPosts action)",
+      "editor": "textfield"
+    },
+    "postId": {
+      "title": "Post ID",
+      "type": "string",
+      "description": "Reddit post ID (for getPost action)",
+      "editor": "textfield"
+    },
+    "subreddit": {
+      "title": "Subreddit",
+      "type": "string",
+      "description": "Subreddit name without r/ prefix",
+      "editor": "textfield"
+    },
+    "subreddits": {
+      "title": "Subreddits",
+      "type": "array",
+      "description": "List of subreddit names for multi-feed",
+      "items": { "type": "string" },
+      "editor": "stringList"
+    },
+    "username": {
+      "title": "Username",
+      "type": "string",
+      "description": "Reddit username without u/ prefix",
+      "editor": "textfield"
+    },
+    "sort": {
+      "title": "Sort",
+      "type": "string",
+      "description": "Sort order",
+      "enum": ["hot", "new", "top", "rising", "controversial", "relevance"],
+      "editor": "select"
+    },
+    "time": {
+      "title": "Time Filter",
+      "type": "string",
+      "description": "Time range filter",
+      "enum": ["hour", "day", "week", "month", "year", "all"],
+      "editor": "select"
+    },
+    "type": {
+      "title": "Content Type",
+      "type": "string",
+      "description": "Filter content type (search/user activity)",
+      "enum": ["posts", "comments", "subreddits", "users"],
+      "editor": "select"
+    },
+    "limit": {
+      "title": "Limit",
+      "type": "integer",
+      "description": "Maximum number of results",
+      "default": 25,
+      "minimum": 1,
+      "maximum": 100
+    },
+    "includeComments": {
+      "title": "Include Comments",
+      "type": "boolean",
+      "description": "Include comments when fetching a post",
+      "default": false
+    },
+    "proxyUrl": {
+      "title": "Proxy URL",
+      "type": "string",
+      "description": "Optional HTTP proxy URL",
+      "editor": "textfield"
+    }
+  },
+  "required": ["action"]
+}
