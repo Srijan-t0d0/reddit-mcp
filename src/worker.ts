@@ -8,6 +8,7 @@ import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/
 import { z } from 'zod'
 import type { RuntimeBindings } from './env'
 import { setEnv, env } from './env'
+import { isHttpError } from './clients/httpError'
 import { fetchPostById, fetchSubredditPosts } from './services/redditPosts'
 import { fetchSearchResults } from './services/redditSearch'
 import { fetchSubreddit } from './services/redditSubreddits'
@@ -33,6 +34,17 @@ const app = new Hono<{ Bindings: Env }>()
 app.use('*', async (c, next) => {
   setEnv(c.env as Record<string, string | undefined>)
   await next()
+})
+
+// ── Error handler: propagate upstream Reddit 429s as HTTP 429 ──────────
+
+app.onError((err, c) => {
+  if (isHttpError(err) && err.status === 429) {
+    c.header('Retry-After', '30')
+    return c.json({ ok: false as const, error: 'upstream reddit rate-limited', status: 429 }, 429)
+  }
+  console.error('[worker.onError]', err)
+  return c.json({ ok: false as const, error: err instanceof Error ? err.message : String(err), status: 500 }, 500)
 })
 
 // ── REST API Helpers ──────────────────────────────────────────────────

@@ -3,11 +3,11 @@ import type { RuntimeBindings } from '../env'
 import { createRedditHttpClient } from '../clients/redditHttp'
 import type { Comment, Listing, Post } from '../domain'
 import { normalizeCommentListing, normalizePost, normalizePostListing } from '../domain'
-import type { RawMoreChildren, RawRedditComment, RawRedditPost, RedditListing, RedditThing } from '../domain'
+import type { RawMoreChildren, RawRedditComment, RawRedditPost, RedditListing } from '../domain'
 import { cacheManager, postKey, subredditPostsKey } from '../cache'
 import type { CacheFetchResult } from '../cache'
 import { fetchSubreddit } from './redditSubreddits'
-import { fetchAuthorProfile, fetchAuthorProfiles } from './authorProfiles'
+import { fetchAuthorProfile } from './authorProfiles'
 
 type RedditCommentsResponse = [
   RedditListing<RawRedditPost>,
@@ -213,17 +213,16 @@ export const fetchSubredditPosts = async (
         ])
 
         const listingData = listingResponse.data
-        const authors = listingData.data.children
-          .filter((child): child is RedditThing<RawRedditPost> & { kind: 't3' } => child.kind === 't3')
-          .map((child) => child.data.author)
-        const authorProfiles = await fetchAuthorProfiles(env, authors)
 
+        // Author enrichment intentionally dropped for batch subreddit listings —
+        // one about.json per author causes Reddit 429s when multiple subs are
+        // queried in parallel. Single-post /api/post/:id still enriches.
         return normalizePostListing(
           listingData,
           options.limit,
           undefined,
           subredditResult.value ?? undefined,
-          authorProfiles,
+          undefined,
         )
       } catch (error) {
         if (isHttpError(error) && error.status === 404) {
