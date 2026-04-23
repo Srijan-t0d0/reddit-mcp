@@ -49,6 +49,281 @@ const ok = <T>(data: T, meta?: Record<string, unknown>) =>
 const fail = (message: string, status: number) =>
   ({ ok: false as const, error: message, status })
 
+// ── Homepage ─────────────────────────────────────────────────────────
+
+app.get('/', (c) => {
+  const baseUrl = new URL(c.req.url).origin
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Reddit MCP — API &amp; MCP Server</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#e5e5e5;--muted:#888;--accent:#ff4500;--accent2:#ff6934;--code-bg:#161616;--green:#22c55e}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+  .container{max-width:720px;margin:0 auto;padding:48px 24px 80px}
+  header{margin-bottom:48px}
+  h1{font-size:2rem;font-weight:700;letter-spacing:-0.03em;margin-bottom:4px}
+  h1 span{color:var(--accent)}
+  .tagline{color:var(--muted);font-size:1.05rem}
+  .badge-row{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+  .badge{display:inline-flex;align-items:center;gap:6px;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding:4px 10px;border-radius:100px;border:1px solid var(--border);color:var(--muted)}
+  .badge .dot{width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block}
+  section{margin-bottom:40px}
+  h2{font-size:1.1rem;font-weight:600;letter-spacing:-0.01em;margin-bottom:16px;color:var(--text)}
+  .endpoint{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:10px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .method{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:3px 8px;border-radius:4px;flex-shrink:0}
+  .get{background:#22c55e18;color:#22c55e;border:1px solid #22c55e33}
+  .post{background:#3b82f618;color:#3b82f6;border:1px solid #3b82f633}
+  .path{font-family:'SF Mono',SFMono-Regular,Menlo,Consolas,monospace;font-size:.9rem;color:var(--text)}
+  .path em{color:var(--muted);font-style:normal}
+  .desc{font-size:.82rem;color:var(--muted);width:100%;margin-top:2px}
+  .try-link{font-size:.75rem;color:var(--accent);margin-left:auto;flex-shrink:0;white-space:nowrap}
+  .code-block{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:16px 20px;overflow-x:auto;margin-top:8px}
+  .code-block code{font-family:'SF Mono',SFMono-Regular,Menlo,Consolas,monospace;font-size:.82rem;color:var(--muted);line-height:1.7;white-space:pre;display:block;word-wrap:break-word;overflow-wrap:break-word}
+  @media(max-width:600px){.code-block code{font-size:.72rem}}
+  .code-block .comment{color:#555}
+  .mcp-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 22px}
+  .mcp-box p{font-size:.9rem;color:var(--muted);margin-bottom:12px}
+  code{font-family:'SF Mono',SFMono-Regular,Menlo,Consolas,monospace}
+  p code,.desc code,.install-card>p code{background:var(--code-bg);padding:2px 7px;border-radius:4px;font-size:.78rem;color:var(--text);white-space:nowrap}
+  .mcp-box>p code{background:var(--code-bg);padding:2px 7px;border-radius:4px;font-size:.82rem}
+  .tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:12px}
+  .tool{font-size:.8rem;padding:8px 12px;border-radius:6px;background:var(--code-bg);border:1px solid var(--border);font-family:'SF Mono',SFMono-Regular,Menlo,Consolas,monospace;color:var(--text)}
+  .install-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 22px;margin-bottom:12px}
+  .install-card h3{font-size:.95rem;font-weight:600;margin-bottom:8px;color:var(--text)}
+  .install-card p{font-size:.85rem;color:var(--muted);margin-bottom:10px}
+  .install-card code{font-size:.8rem}
+  .tool-ref-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:10px}
+  .tool-ref-item h4{font-size:.9rem;font-weight:600;color:var(--accent);font-family:'SF Mono',SFMono-Regular,Menlo,Consolas,monospace;margin-bottom:4px}
+  .tool-ref-item p{font-size:.84rem;color:var(--muted);margin-bottom:8px}
+  .params{font-size:.78rem;color:var(--muted);font-family:'SF Mono',SFMono-Regular,Menlo,Consolas,monospace;padding:6px 10px;background:var(--code-bg);border-radius:6px}
+  .params em{color:var(--accent);font-style:normal;font-weight:600}
+  footer{margin-top:56px;padding-top:24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+  footer span{font-size:.8rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1><span>Reddit</span> MCP</h1>
+    <p class="tagline">Reddit data as a REST API and MCP server. No API key needed.</p>
+    <div class="badge-row">
+      <span class="badge"><span class="dot"></span> Live</span>
+      <span class="badge">Cloudflare Workers</span>
+      <span class="badge">MCP Compatible</span>
+      <span class="badge">v1.0.0</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>REST API</h2>
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <span class="path">/api/search?q=<em>{query}</em></span>
+      <a class="try-link" href="${baseUrl}/api/search?q=cloudflare&limit=3" target="_blank">Try it →</a>
+      <span class="desc">Search Reddit for posts, comments, subreddits, or users</span>
+    </div>
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <span class="path">/api/r/<em>{subreddit}</em></span>
+      <a class="try-link" href="${baseUrl}/api/r/technology" target="_blank">Try it →</a>
+      <span class="desc">Get subreddit info — subscribers, description, rules</span>
+    </div>
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <span class="path">/api/r/<em>{subreddit}</em>/posts</span>
+      <a class="try-link" href="${baseUrl}/api/r/javascript/posts?limit=3" target="_blank">Try it →</a>
+      <span class="desc">Get posts from a subreddit with sort &amp; time filters</span>
+    </div>
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <span class="path">/api/post/<em>{id}</em></span>
+      <span class="desc">Get a post by ID, optionally with comments</span>
+    </div>
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <span class="path">/api/user/<em>{username}</em></span>
+      <a class="try-link" href="${baseUrl}/api/user/spez" target="_blank">Try it →</a>
+      <span class="desc">Get a user profile — karma, account age, etc.</span>
+    </div>
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <span class="path">/api/user/<em>{username}</em>/activity</span>
+      <span class="desc">Get a user's recent posts and comments</span>
+    </div>
+    <div class="endpoint">
+      <span class="method post">POST</span>
+      <span class="path">/api/feed</span>
+      <span class="desc">Combined feed from multiple subreddits, merged by date</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Quick Start</h2>
+    <div class="code-block"><code><span class="comment"># Search Reddit</span>
+curl "${baseUrl}/api/search?q=rust+programming&limit=5"
+
+<span class="comment"># Get top posts from r/webdev</span>
+curl "${baseUrl}/api/r/webdev/posts?sort=top&time=week&limit=10"
+
+<span class="comment"># Multi-subreddit feed</span>
+curl -X POST "${baseUrl}/api/feed" \\
+  -H "Content-Type: application/json" \\
+  -d '{"subreddits":["typescript","rust","golang"],"limit":15}'</code></div>
+  </section>
+
+  <section>
+    <h2>MCP Server</h2>
+    <div class="mcp-box">
+      <p>This server speaks the <a href="https://modelcontextprotocol.io" target="_blank">Model Context Protocol</a> over Streamable HTTP. Connect any MCP client — no API key needed.</p>
+      <div class="code-block" style="margin-bottom:16px"><code>${baseUrl}/mcp</code></div>
+      <p style="font-size:.82rem;color:var(--muted);margin-bottom:8px">Available tools:</p>
+      <div class="tools-grid">
+        <div class="tool">search_reddit</div>
+        <div class="tool">get_post</div>
+        <div class="tool">get_subreddit</div>
+        <div class="tool">get_subreddit_posts</div>
+        <div class="tool">get_user</div>
+        <div class="tool">get_user_activity</div>
+        <div class="tool">get_multi_feed</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Install</h2>
+
+    <div class="install-card">
+      <h3>Claude Desktop</h3>
+      <p>Claude Desktop only supports stdio servers natively, so bridge through <code>mcp-remote</code>. Add to <code>~/Library/Application Support/Claude/claude_desktop_config.json</code> (macOS) or <code>%APPDATA%\\Claude\\claude_desktop_config.json</code> (Windows):</p>
+      <div class="code-block"><code>{
+  "mcpServers": {
+    "reddit": {
+      "command": "npx",
+      "args": ["mcp-remote", "${baseUrl}/mcp"]
+    }
+  }
+}</code></div>
+    </div>
+
+    <div class="install-card">
+      <h3>Claude Code (CLI)</h3>
+      <p>Run this in your terminal:</p>
+      <div class="code-block"><code>claude mcp add reddit --transport http ${baseUrl}/mcp</code></div>
+    </div>
+
+    <div class="install-card">
+      <h3>Cursor</h3>
+      <p>Add to <code>.cursor/mcp.json</code> in your project root:</p>
+      <div class="code-block"><code>{
+  "mcpServers": {
+    "reddit": {
+      "url": "${baseUrl}/mcp"
+    }
+  }
+}</code></div>
+    </div>
+
+    <div class="install-card">
+      <h3>Windsurf</h3>
+      <p>Add to <code>~/.codeium/windsurf/mcp_config.json</code>:</p>
+      <div class="code-block"><code>{
+  "mcpServers": {
+    "reddit": {
+      "serverUrl": "${baseUrl}/mcp"
+    }
+  }
+}</code></div>
+    </div>
+
+    <div class="install-card">
+      <h3>Cline (VS Code)</h3>
+      <p>Open Cline settings → MCP Servers → add:</p>
+      <div class="code-block"><code>{
+  "mcpServers": {
+    "reddit": {
+      "type": "streamableHttp",
+      "url": "${baseUrl}/mcp"
+    }
+  }
+}</code></div>
+    </div>
+
+    <div class="install-card">
+      <h3>Local (stdio via npx)</h3>
+      <p>Run the MCP server locally with Bun:</p>
+      <div class="code-block"><code><span class="comment"># Clone and run</span>
+git clone https://github.com/your-org/reddit-mcp.git
+cd reddit-mcp && bun install
+bun run start</code></div>
+      <p style="margin-top:10px">Then add to your MCP client config:</p>
+      <div class="code-block"><code>{
+  "mcpServers": {
+    "reddit": {
+      "command": "bun",
+      "args": ["run", "start"],
+      "cwd": "/path/to/reddit-mcp"
+    }
+  }
+}</code></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Tool Reference</h2>
+    <div class="tool-ref">
+      <div class="tool-ref-item">
+        <h4>search_reddit</h4>
+        <p>Search Reddit for posts, comments, subreddits, or users.</p>
+        <div class="params">query <em>(required)</em>, type, sort, time, subreddit, limit, after</div>
+      </div>
+      <div class="tool-ref-item">
+        <h4>get_post</h4>
+        <p>Get a Reddit post by ID, optionally with comments.</p>
+        <div class="params">postId <em>(required)</em>, includeComments, commentSort, commentLimit, commentDepth</div>
+      </div>
+      <div class="tool-ref-item">
+        <h4>get_subreddit</h4>
+        <p>Get information about a subreddit.</p>
+        <div class="params">name <em>(required)</em></div>
+      </div>
+      <div class="tool-ref-item">
+        <h4>get_subreddit_posts</h4>
+        <p>Get posts from a subreddit with sort and time filters.</p>
+        <div class="params">subreddit <em>(required)</em>, sort, time, limit, after</div>
+      </div>
+      <div class="tool-ref-item">
+        <h4>get_user</h4>
+        <p>Get a Reddit user profile.</p>
+        <div class="params">username <em>(required)</em></div>
+      </div>
+      <div class="tool-ref-item">
+        <h4>get_user_activity</h4>
+        <p>Get a user's recent posts and comments.</p>
+        <div class="params">username <em>(required)</em>, type, sort, time, limit, after</div>
+      </div>
+      <div class="tool-ref-item">
+        <h4>get_multi_feed</h4>
+        <p>Combined feed from multiple subreddits, merged and sorted.</p>
+        <div class="params">subreddits <em>(required)</em>, sort, time, limit, perSubreddit</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>No API key required · No proxy needed · Runs on the edge</span>
+    <a href="${baseUrl}/health">Status</a>
+  </footer>
+</div>
+</body>
+</html>`
+  return c.html(html)
+})
+
 // ── REST Routes ───────────────────────────────────────────────────────
 
 app.get('/health', (c) => {
@@ -217,10 +492,10 @@ const createMcpServer = (): McpServer => {
           return { content: [{ type: 'text', text: `Post "${params.postId}" not found.` }] }
         }
         const { post, comments } = result.value
-        let text = formatPost(post)
+        let text = formatPost(post, { truncate: false })
         if (comments?.items.length) {
           text += `\n\n── Comments (${comments.items.length}) ──\n\n`
-          text += comments.items.map((c) => formatComment(c)).join('\n\n')
+          text += comments.items.map((c) => formatComment(c, 0, { truncate: false })).join('\n\n')
         }
         return { content: [{ type: 'text', text }] }
       } catch (error) {
@@ -270,7 +545,7 @@ const createMcpServer = (): McpServer => {
           return { content: [{ type: 'text', text: `Subreddit "r/${params.subreddit}" not found.` }] }
         }
         const listing = result.value
-        const formatted = listing.items.map(formatPost).join('\n\n---\n\n')
+        const formatted = listing.items.map((p) => formatPost(p)).join('\n\n---\n\n')
         const header = `r/${params.subreddit} — ${params.sort ?? 'hot'} (${listing.items.length} posts)`
         const paging = listing.paging?.after ? `\n\n📄 More posts available — use after: "${listing.paging.after}"` : ''
         return { content: [{ type: 'text', text: `${header}\n\n${formatted}${paging}` }] }
@@ -351,7 +626,7 @@ const createMcpServer = (): McpServer => {
           limit: params.limit,
           perSubreddit: params.perSubreddit,
         })
-        const formatted = result.listing.items.map(formatPost).join('\n\n---\n\n')
+        const formatted = result.listing.items.map((p) => formatPost(p)).join('\n\n---\n\n')
         const sourcesSummary = result.sources
           .map((s) => `  r/${s.name}: ${s.postsFetched} posts${s.error ? ` (⚠ ${s.error})` : ''}`)
           .join('\n')
@@ -376,12 +651,7 @@ app.all('/mcp', async (c) => {
 
   await server.connect(transport)
 
-  const response = await transport.handleRequest(c.req.raw)
-
-  // Close the transport (stateless mode — one request per connection)
-  await server.close()
-
-  return response
+  return await transport.handleRequest(c.req.raw)
 })
 
 // ── Export ─────────────────────────────────────────────────────────────

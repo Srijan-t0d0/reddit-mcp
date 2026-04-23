@@ -4,7 +4,8 @@
 
 import type { Comment, OverviewEntry, Post, SearchResult, Subreddit, UserSummary } from './domain'
 
-export const formatPost = (post: Post): string => {
+export const formatPost = (post: Post, opts: { truncate?: boolean } = {}): string => {
+  const { truncate = true } = opts
   const lines = [
     `📝 ${post.title}`,
     `   r/${post.subreddit.name} • u/${post.author.name} • ${post.createdUtc}`,
@@ -12,7 +13,7 @@ export const formatPost = (post: Post): string => {
     `   https://reddit.com${post.permalink}`,
   ]
   if (post.selftext) {
-    const snippet = post.selftext.length > 500 ? `${post.selftext.slice(0, 500)}…` : post.selftext
+    const snippet = truncate && post.selftext.length > 500 ? `${post.selftext.slice(0, 500)}…` : post.selftext
     lines.push(`\n${snippet}`)
   }
   if (post.url && !post.isSelf) {
@@ -21,16 +22,17 @@ export const formatPost = (post: Post): string => {
   return lines.join('\n')
 }
 
-export const formatComment = (comment: Comment, indent = 0): string => {
+export const formatComment = (comment: Comment, indent = 0, opts: { truncate?: boolean } = {}): string => {
+  const { truncate = true } = opts
   const pad = '  '.repeat(indent)
-  const body = comment.body.length > 300 ? `${comment.body.slice(0, 300)}…` : comment.body
+  const body = truncate && comment.body.length > 300 ? `${comment.body.slice(0, 300)}…` : comment.body
   const lines = [
     `${pad}💬 u/${comment.author} • ⬆ ${comment.score} • ${comment.createdUtc}`,
     `${pad}${body}`,
   ]
   if (comment.replies?.length) {
     for (const reply of comment.replies.slice(0, 3)) {
-      lines.push(formatComment(reply, indent + 1))
+      lines.push(formatComment(reply, indent + 1, opts))
     }
   }
   return lines.join('\n')

@@ -85,10 +85,10 @@ server.tool(
         return { content: [{ type: 'text', text: `Post "${params.postId}" not found.` }] }
       }
       const { post, comments } = result.value
-      let text = formatPost(post)
+      let text = formatPost(post, { truncate: false })
       if (comments?.items.length) {
         text += `\n\n── Comments (${comments.items.length}) ──\n\n`
-        text += comments.items.map((c) => formatComment(c)).join('\n\n')
+        text += comments.items.map((c) => formatComment(c, 0, { truncate: false })).join('\n\n')
       }
       return { content: [{ type: 'text', text }] }
     } catch (error) {
@@ -138,7 +138,7 @@ server.tool(
         return { content: [{ type: 'text', text: `Subreddit "r/${params.subreddit}" not found.` }] }
       }
       const listing = result.value
-      const formatted = listing.items.map(formatPost).join('\n\n---\n\n')
+      const formatted = listing.items.map((p) => formatPost(p)).join('\n\n---\n\n')
       const header = `r/${params.subreddit} — ${params.sort ?? 'hot'} (${listing.items.length} posts)`
       const paging = listing.paging?.after ? `\n\n📄 More posts available — use after: "${listing.paging.after}"` : ''
       return { content: [{ type: 'text', text: `${header}\n\n${formatted}${paging}` }] }
@@ -219,7 +219,7 @@ server.tool(
         limit: params.limit,
         perSubreddit: params.perSubreddit,
       })
-      const formatted = result.listing.items.map(formatPost).join('\n\n---\n\n')
+      const formatted = result.listing.items.map((p) => formatPost(p)).join('\n\n---\n\n')
       const sourcesSummary = result.sources
         .map((s) => `  r/${s.name}: ${s.postsFetched} posts${s.error ? ` (⚠ ${s.error})` : ''}`)
         .join('\n')
