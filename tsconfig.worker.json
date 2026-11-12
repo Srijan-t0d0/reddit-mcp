@@ -11,5 +11,5 @@
     "rootDir": "src"
   },
   "include": ["src"],
-  "exclude": ["src/api.ts", "src/apify.ts", "src/index.ts", "src/**/*.test.ts"]
+  "exclude": ["src/api.ts", "src/apify.ts", "src/index.ts", "src/app.ts", "src/**/*.test.ts"]
 }

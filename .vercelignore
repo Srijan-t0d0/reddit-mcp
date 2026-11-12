@@ -1,0 +1,8 @@
+.env
+.env.*
+.dev.vars
+.dev.vars.*
+.claude/
+.wrangler/
+.git/
+node_modules/

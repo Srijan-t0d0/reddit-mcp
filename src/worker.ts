@@ -122,10 +122,10 @@ app.get('/', (c) => {
 <div class="container">
   <header>
     <h1><span>Reddit</span> MCP</h1>
-    <p class="tagline">Reddit data as a REST API and MCP server. No API key needed.</p>
+    <p class="tagline">Reddit data as a REST API and MCP server.${env.RUNTIME === 'vercel-bun' ? ' API and MCP requests require an Authorization: Bearer token header.' : ' No API key needed.'}</p>
     <div class="badge-row">
       <span class="badge"><span class="dot"></span> Live</span>
-      <span class="badge">Cloudflare Workers</span>
+      <span class="badge">${env.RUNTIME === 'vercel-bun' ? 'Vercel · Bun' : 'Cloudflare Workers'}</span>
       <span class="badge">MCP Compatible</span>
       <span class="badge">v1.0.0</span>
     </div>
@@ -177,13 +177,13 @@ app.get('/', (c) => {
   <section>
     <h2>Quick Start</h2>
     <div class="code-block"><code><span class="comment"># Search Reddit</span>
-curl "${baseUrl}/api/search?q=rust+programming&limit=5"
+curl "${baseUrl}/api/search?q=rust+programming&limit=5"${env.RUNTIME === 'vercel-bun' ? ' -H "Authorization: Bearer YOUR_API_AUTH_TOKEN"' : ''}
 
 <span class="comment"># Get top posts from r/webdev</span>
-curl "${baseUrl}/api/r/webdev/posts?sort=top&time=week&limit=10"
+curl "${baseUrl}/api/r/webdev/posts?sort=top&time=week&limit=10"${env.RUNTIME === 'vercel-bun' ? ' -H "Authorization: Bearer YOUR_API_AUTH_TOKEN"' : ''}
 
 <span class="comment"># Multi-subreddit feed</span>
-curl -X POST "${baseUrl}/api/feed" \\
+curl -X POST "${baseUrl}/api/feed"${env.RUNTIME === 'vercel-bun' ? ' -H "Authorization: Bearer YOUR_API_AUTH_TOKEN"' : ''} \\
   -H "Content-Type: application/json" \\
   -d '{"subreddits":["typescript","rust","golang"],"limit":15}'</code></div>
   </section>
@@ -191,7 +191,7 @@ curl -X POST "${baseUrl}/api/feed" \\
   <section>
     <h2>MCP Server</h2>
     <div class="mcp-box">
-      <p>This server speaks the <a href="https://modelcontextprotocol.io" target="_blank">Model Context Protocol</a> over Streamable HTTP. Connect any MCP client — no API key needed.</p>
+      <p>This server speaks the <a href="https://modelcontextprotocol.io" target="_blank">Model Context Protocol</a> over Streamable HTTP. Connect any MCP client.${env.RUNTIME === 'vercel-bun' ? ' Set its Authorization header to Bearer followed by your API_AUTH_TOKEN.' : ' No API key needed.'}</p>
       <div class="code-block" style="margin-bottom:16px"><code>${baseUrl}/mcp</code></div>
       <p style="font-size:.82rem;color:var(--muted);margin-bottom:8px">Available tools:</p>
       <div class="tools-grid">
@@ -216,7 +216,7 @@ curl -X POST "${baseUrl}/api/feed" \\
   "mcpServers": {
     "reddit": {
       "command": "npx",
-      "args": ["mcp-remote", "${baseUrl}/mcp"]
+      "args": ["mcp-remote", "${baseUrl}/mcp"${env.RUNTIME === 'vercel-bun' ? ', "--header", "Authorization: Bearer YOUR_API_AUTH_TOKEN"' : ''}]
     }
   }
 }</code></div>
@@ -225,7 +225,7 @@ curl -X POST "${baseUrl}/api/feed" \\
     <div class="install-card">
       <h3>Claude Code (CLI)</h3>
       <p>Run this in your terminal:</p>
-      <div class="code-block"><code>claude mcp add reddit --transport http ${baseUrl}/mcp</code></div>
+      <div class="code-block"><code>claude mcp add reddit --transport http ${baseUrl}/mcp${env.RUNTIME === 'vercel-bun' ? ' --header "Authorization: Bearer YOUR_API_AUTH_TOKEN"' : ''}</code></div>
     </div>
 
     <div class="install-card">
@@ -234,7 +234,7 @@ curl -X POST "${baseUrl}/api/feed" \\
       <div class="code-block"><code>{
   "mcpServers": {
     "reddit": {
-      "url": "${baseUrl}/mcp"
+      "url": "${baseUrl}/mcp"${env.RUNTIME === 'vercel-bun' ? ',\n      "headers": { "Authorization": "Bearer YOUR_API_AUTH_TOKEN" }' : ''}
     }
   }
 }</code></div>
@@ -246,7 +246,7 @@ curl -X POST "${baseUrl}/api/feed" \\
       <div class="code-block"><code>{
   "mcpServers": {
     "reddit": {
-      "serverUrl": "${baseUrl}/mcp"
+      "serverUrl": "${baseUrl}/mcp"${env.RUNTIME === 'vercel-bun' ? ',\n      "headers": { "Authorization": "Bearer YOUR_API_AUTH_TOKEN" }' : ''}
     }
   }
 }</code></div>
@@ -259,7 +259,7 @@ curl -X POST "${baseUrl}/api/feed" \\
   "mcpServers": {
     "reddit": {
       "type": "streamableHttp",
-      "url": "${baseUrl}/mcp"
+      "url": "${baseUrl}/mcp"${env.RUNTIME === 'vercel-bun' ? ',\n      "headers": { "Authorization": "Bearer YOUR_API_AUTH_TOKEN" }' : ''}
     }
   }
 }</code></div>
@@ -269,7 +269,7 @@ curl -X POST "${baseUrl}/api/feed" \\
       <h3>Local (stdio via npx)</h3>
       <p>Run the MCP server locally with Bun:</p>
       <div class="code-block"><code><span class="comment"># Clone and run</span>
-git clone https://github.com/your-org/reddit-mcp.git
+git clone https://github.com/Srijan-t0d0/reddit-mcp.git
 cd reddit-mcp && bun install
 bun run start</code></div>
       <p style="margin-top:10px">Then add to your MCP client config:</p>
@@ -327,7 +327,7 @@ bun run start</code></div>
   </section>
 
   <footer>
-    <span>No API key required · No proxy needed · Runs on the edge</span>
+    <span>${env.RUNTIME === 'vercel-bun' ? 'Bearer authentication required · Bun proxy support' : 'No API key required · Runs on Cloudflare Workers'}</span>
     <a href="${baseUrl}/health">Status</a>
   </footer>
 </div>
@@ -339,7 +339,7 @@ bun run start</code></div>
 // ── REST Routes ───────────────────────────────────────────────────────
 
 app.get('/health', (c) => {
-  return c.json({ ok: true, version: '1.0.0', runtime: 'cloudflare-workers' })
+  return c.json({ ok: true, version: '1.0.0', runtime: env.RUNTIME ?? 'cloudflare-workers' })
 })
 
 app.get('/api/search', async (c) => {

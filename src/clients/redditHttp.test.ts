@@ -27,6 +27,18 @@ test('sends the configured cookie only to Reddit and refuses redirects', async (
   expect(calls).toBe(1)
 })
 
+test('sends the cookie through the configured sticky proxy without changing it', async () => {
+  const proxy = 'http://test-user:test-password@proxy.example.com:8080'
+  setEnv({ REDDIT_COOKIE: 'reddit_session=test', PROXY_URL: proxy })
+  globalThis.fetch = (async (_url, init) => {
+    expect((init as RequestInit & { proxy?: string }).proxy).toBe(proxy)
+    expect(new Headers(init?.headers).get('Cookie')).toBe('reddit_session=test')
+    expect(init?.redirect).toBe('manual')
+    return Response.json({})
+  }) as typeof fetch
+  await createRedditHttpClient().get('/r/test.json')
+})
+
 test('rejects redirect responses without following them', async () => {
   setEnv({ REDDIT_COOKIE: 'reddit_session=test' })
   globalThis.fetch = (async (_url, init) => {

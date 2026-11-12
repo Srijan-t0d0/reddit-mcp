@@ -1,6 +1,6 @@
 # Reddit MCP
 
-Reddit MCP server and REST API, with a Cloudflare Worker deployment target and an optional Apify scraper adapter. Apify is not required.
+Reddit MCP server and REST API, hosted on Vercel with Bun for outbound proxy support. Local stdio, Cloudflare Worker, and optional Apify entry points remain available. Apify is not required.
 
 ## Quick start
 
@@ -16,6 +16,22 @@ bun run start  # stdio MCP server
 Edit `.env` only if you need a cookie or proxy. Anonymous requests need neither. `.env` and local Wrangler `.dev.vars` files are ignored by Git; `.env.example` contains no credentials.
 
 For an MCP client, configure `bun run src/index.ts` as the command, with this repository as the working directory. For Cloudflare development, run `bun run worker:dev`; deploy with `bun run worker:deploy` after configuring Wrangler authentication.
+
+## Vercel hosting (Bun)
+
+Vercel uses `src/app.ts`, the Hono framework preset, and the Bun `1.x` runtime configured in `vercel.json`. It reuses the existing REST and stateless Streamable HTTP MCP routes. `/health` reports `vercel-bun`.
+
+Connect the GitHub repository in Vercel, set `main` as the production branch, and add these **Secret** environment variables before pushing:
+
+- `REDDIT_COOKIE`: the Reddit Cookie request header value.
+- `PROXY_URL`: your residential HTTP proxy URL, including sticky-session credentials.
+- `API_AUTH_TOKEN`: a strong random token used by your clients, separate from the Reddit cookie.
+
+Pushes to GitHub trigger deployments; no manual deployment command is required. Keep Vercel's deployment protection enabled for previews, and do not send production credentials to untrusted pull-request builds. Local environment files are excluded from CLI uploads as well as Git.
+
+The Vercel wrapper protects `/api/*` and `/mcp` with `Authorization: Bearer <API_AUTH_TOKEN>` and fails closed if no token is configured. Set that header in your REST or MCP client; do not put the token in a URL. `/` and `/health` remain public. This protection applies only to the Vercel wrapper, not the original standalone API or Cloudflare entry point. Replace `YOUR_API_AUTH_TOKEN` in the landing page examples with your own token; never commit client configuration containing the real token.
+
+Bun's proxy option is retained on Vercel. Changing hosts does not fix Reddit endpoint restrictions: new/rising listings and search can still return 403. The base `.json?sort=new` URL is not a reliable substitute: live checks found that it ignored the requested sort.
 
 ## Optional proxy (Bun only)
 
