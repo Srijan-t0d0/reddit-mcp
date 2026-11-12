@@ -1,4 +1,5 @@
 import type { CacheMeta } from '../domain'
+import { env } from '../env'
 import { InMemoryCacheStore, type CacheRecord, type CacheStore } from './store'
 import {
   recordCacheError,
@@ -81,6 +82,11 @@ export class CacheManager {
    * duplicate upstream calls.
    */
   async fetch<T>(options: CacheFetchOptions<T>): Promise<CacheFetchResult<T>> {
+    // Account-visible results must not enter the shared anonymous cache.
+    if (env.REDDIT_COOKIE?.trim()) {
+      return { value: await options.loader(), cache: { hit: false, maxAge: 0, staleWhileRevalidate: 0 } }
+    }
+
     const now = Date.now()
     const baseMeta: CacheMeta = {
       hit: false,

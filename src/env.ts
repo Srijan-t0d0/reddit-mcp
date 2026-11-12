@@ -6,6 +6,7 @@ export interface RuntimeBindings {
   METRICS_AUTH_USERNAME?: string
   METRICS_AUTH_PASSWORD?: string
   PROXY_URL?: string
+  REDDIT_COOKIE?: string
   [key: string]: string | undefined
 }
 

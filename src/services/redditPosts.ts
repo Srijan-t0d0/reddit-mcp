@@ -58,8 +58,8 @@ const sanitizeParams = (params: Record<string, string | number | undefined>) =>
 
 const POST_DETAILS_TTL_MS = 6 * 60 * 60 * 1000
 const POST_DETAILS_STALE_MS = 60 * 60 * 1000
-const SUBREDDIT_POSTS_TTL_MS = 2 * 60 * 60 * 1000
-const SUBREDDIT_POSTS_STALE_MS = 45 * 60 * 1000
+const SUBREDDIT_POSTS_TTL_MS = 10 * 60 * 1000
+const SUBREDDIT_POSTS_STALE_MS = 5 * 60 * 1000
 
 const msToSeconds = (value: number): number => Math.round(value / 1000)
 

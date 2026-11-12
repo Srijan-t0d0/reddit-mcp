@@ -46,8 +46,8 @@ const sanitizeParams = (params: Record<string, string | number | boolean | undef
     Object.entries(params).filter(([, value]) => value !== undefined && value !== null),
   )
 
-const SEARCH_TTL_MS = 6 * 60 * 60 * 1000
-const SEARCH_STALE_MS = 60 * 60 * 1000
+const SEARCH_TTL_MS = 10 * 60 * 1000
+const SEARCH_STALE_MS = 5 * 60 * 1000
 
 export const fetchSearchResults = async (
   env: RuntimeBindings,

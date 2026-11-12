@@ -30,6 +30,19 @@ const USER_AGENTS = [
 const randomUserAgent = (): string =>
   USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)]
 
+// Webshare per-request session rotation: numeric suffix in the username picks
+// a fresh sticky session (and therefore a fresh exit IP). Randomising it per
+// request gives effective rotation without depending on the "-rotate" keyword.
+// Template: http://<base>-{N}:<pw>@p.webshare.io:80  →  {N} is replaced.
+const SESSION_PLACEHOLDER = '{N}'
+const randomSession = (): string =>
+  String(10_000 + Math.floor(Math.random() * 70_000))
+
+const buildProxyUrl = (raw: string): string =>
+  raw.includes(SESSION_PLACEHOLDER)
+    ? raw.replace(SESSION_PLACEHOLDER, randomSession())
+    : raw
+
 export interface RedditHttpOptions {
   baseURL?: string
   timeoutMs?: number
@@ -45,11 +58,6 @@ export const createRedditHttpClient = (
   const baseURL = options?.baseURL ?? REDDIT_BASE_URL
   const timeoutMs = options?.timeoutMs ?? 100_000
 
-  // Warn once if PROXY_URL is set (not usable in CF Workers or native fetch)
-  if (env.PROXY_URL) {
-    console.warn('[redditHttp] PROXY_URL is set but ignored — native fetch does not support HTTP proxies.')
-  }
-
   return {
     async get<T>(path: string, opts?: { params?: Record<string, string | number | boolean | undefined> }): Promise<{ data: T }> {
       const url = new URL(path, baseURL)
@@ -62,15 +70,32 @@ export const createRedditHttpClient = (
         }
       }
 
-      const response = await fetch(url.toString(), {
+      const cookie = env.REDDIT_COOKIE?.trim()
+      if (cookie && !/^[\x20-\x7e]+$/.test(cookie)) {
+        throw new Error('REDDIT_COOKIE must be a single-line Cookie header value')
+      }
+      if (cookie && url.origin !== REDDIT_BASE_URL) {
+        throw new Error('Authenticated Reddit requests must use https://www.reddit.com')
+      }
+
+      const init: RequestInit & { proxy?: string } = {
         method: 'GET',
         headers: {
           'User-Agent': randomUserAgent(),
           'Accept': 'application/json',
           'Accept-Encoding': 'gzip, deflate, br',
+          ...(cookie ? { Cookie: cookie } : {}),
         },
         signal: AbortSignal.timeout(timeoutMs),
-      })
+        // Never forward the account cookie through a redirect.
+        ...(cookie ? { redirect: 'manual' as const } : {}),
+      }
+
+      if (env.PROXY_URL) {
+        init.proxy = buildProxyUrl(env.PROXY_URL)
+      }
+
+      const response = await fetch(url.toString(), init)
 
       if (!response.ok) {
         throw new HttpError(response.status, response.statusText, url.toString())
