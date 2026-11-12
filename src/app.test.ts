@@ -41,6 +41,8 @@ test('Vercel connection examples include placeholder bearer headers, not the rea
   expect(html).toContain('Authorization: Bearer YOUR_API_AUTH_TOKEN')
   expect(html).not.toContain('test-private-api-token')
   expect(html).toContain('Vercel · Bun')
+  expect(html).toContain('Public trials are paused due to abuse.')
+  expect(html).toContain('mailto:srijandev01@gmail.com?subject=Reddit%20MCP%20access%20request')
 })
 
 test('authorized Vercel MCP requests initialize the shared server', async () => {

@@ -131,6 +131,11 @@ app.get('/', (c) => {
     </div>
   </header>
 
+  ${env.RUNTIME === 'vercel-bun' ? `<section aria-labelledby="access-heading">
+    <h2 id="access-heading">Request access</h2>
+    <p>Public trials are paused due to abuse. To request an access key, email <a href="mailto:srijandev01@gmail.com?subject=Reddit%20MCP%20access%20request">srijandev01@gmail.com</a> with your use case and expected request volume.</p>
+  </section>` : ''}
+
   <section>
     <h2>REST API</h2>
     <div class="endpoint">
