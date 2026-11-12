@@ -1,6 +1,37 @@
 # Reddit MCP
 
-Reddit MCP server, REST API, and Apify scraper.
+Reddit MCP server and REST API, with a Cloudflare Worker deployment target and an optional Apify scraper adapter. Apify is not required.
+
+## Quick start
+
+Install [Bun](https://bun.sh), then run:
+
+```sh
+bun install --frozen-lockfile
+cp .env.example .env
+bun run start  # stdio MCP server
+# Or: bun run api  # REST API on http://localhost:3000
+```
+
+Edit `.env` only if you need a cookie or proxy. Anonymous requests need neither. `.env` and local Wrangler `.dev.vars` files are ignored by Git; `.env.example` contains no credentials.
+
+For an MCP client, configure `bun run src/index.ts` as the command, with this repository as the working directory. For Cloudflare development, run `bun run worker:dev`; deploy with `bun run worker:deploy` after configuring Wrangler authentication.
+
+## Optional proxy (Bun only)
+
+Set `PROXY_URL` in `.env` to an HTTP proxy URL such as `http://username:password@proxy.example.com:8080`. Cookie-authenticated requests use the same proxy. Use a trusted proxy: it handles authenticated Reddit traffic.
+
+For Webshare session rotation, include `{N}` in the proxy username; each request replaces it with a random session number.
+
+Proxy routing uses Bun's `fetch` extension. It is **not supported by this implementation on Cloudflare Workers or standard Node.js**. A cookie alone does not prevent Reddit from blocking datacenter IP addresses.
+
+## Checks
+
+```sh
+bun test
+bun run typecheck
+bun run typecheck:worker
+```
 
 ## Optional Reddit cookie
 

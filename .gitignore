@@ -4,5 +4,6 @@ node_modules/
 *.log
 .env
 .env.*
+!.env.example
 .dev.vars
 .dev.vars.*
